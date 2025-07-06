@@ -47,40 +47,8 @@ function DonationsPage({ darkMode }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Scroll position storage for modal prevention
-  const [scrollPosition, setScrollPosition] = useState(0);
-
-  // Modal scroll prevention functions
-  const preventModalScroll = () => {
-    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-    setScrollPosition(currentScroll);
-    document.body.classList.add('donations-modal-open');
-    document.body.style.top = `-${currentScroll}px`;
-  };
-
-  const allowModalScroll = () => {
-    document.body.classList.remove('donations-modal-open');
-    document.body.style.top = '';
-    window.scrollTo(0, scrollPosition);
-  };
-
-  // Effect to handle modal states and scroll prevention
-  useEffect(() => {
-    const hasOpenModal = selectedItem || showPostModal || showChatModal;
-    
-    if (hasOpenModal) {
-      preventModalScroll();
-    } else {
-      allowModalScroll();
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (hasOpenModal) {
-        allowModalScroll();
-      }
-    };
-  }, [selectedItem, showPostModal, showChatModal]);
+  // Remove scroll prevention for modal (allow scroll like other pages)
+  // No scroll lock logic needed
 
   // Handle escape key to close modals
   useEffect(() => {
