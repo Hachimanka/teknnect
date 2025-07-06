@@ -375,7 +375,7 @@ function LostFoundPage({ darkMode }) {
           <div className="lostfound-modal-overlay" onClick={closeModal}>
             <div className="lostfound-modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="lostfound-modal-header">
-                <button className="lostfound-modal-close" onClick={closeModal}> d7</button>
+             <button className="lostfound-modal-close" onClick={closeModal}>×</button>
                 <h2 className="lostfound-modal-title">{selectedItem.title}</h2>
               </div>
               <div className="lostfound-modal-body">
@@ -393,7 +393,7 @@ function LostFoundPage({ darkMode }) {
                 {auth.currentUser && selectedItem.uid !== auth.currentUser.uid ? (
                   <>
                     <button className="lostfound-chat-button" onClick={() => setShowChatModal(true)}>Chat With Uploader</button>
-                    <button className="lostfound-report-btn" style={{ marginLeft: 8, background: '#fbeee0', color: '#c0392b', border: '1px solid #c0392b', borderRadius: 6, padding: '4px 10px', fontSize: '0.95rem', cursor: 'pointer' }} onClick={() => openReportModal(selectedItem)}>Report</button>
+                  
                   </>
                 ) : (
                   <div style={{textAlign: 'center', color: '#888', fontWeight: 500, padding: '0.2rem 0', minHeight: '32px'}}>

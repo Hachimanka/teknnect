@@ -367,7 +367,7 @@ function DonationsPage({ darkMode }) {
           >
             <div className="donations-modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="donations-modal-header">
-                <button className="donations-modal-close" onClick={closeModal}> d7</button>
+                <button className="donations-modal-close" onClick={closeModal}>×</button>
                 <h2 className="donations-modal-title">{selectedItem.title}</h2>
               </div>
               <div className="donations-modal-body">
@@ -390,7 +390,7 @@ function DonationsPage({ darkMode }) {
                     <button className="donations-chat-button" onClick={() => setShowChatModal(true)}>
                       {selectedItem.type === 'donation' ? 'Contact Donor' : 'Contact Requester'}
                     </button>
-                    <button className="donations-report-btn" style={{ marginLeft: 8, background: '#fbeee0', color: '#c0392b', border: '1px solid #c0392b', borderRadius: 6, padding: '4px 10px', fontSize: '0.95rem', cursor: 'pointer' }} onClick={() => openReportModal(selectedItem)}>Report</button>
+                   
                   </>
                 ) : (
                   <div style={{textAlign: 'center', color: '#888', fontWeight: 500, padding: '0.2rem 0', minHeight: '32px'}}>

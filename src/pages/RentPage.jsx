@@ -273,7 +273,7 @@ function RentPage({ darkMode }) {
           <div className="rent-modal-overlay" onClick={closeModal}>
             <div className="rent-modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="rent-modal-header">
-                <button className="rent-modal-close" onClick={closeModal}> d7</button>
+               <button className="rent-modal-close" onClick={closeModal}>×</button>
                 <h2 className="rent-modal-title">{selectedItem.title}</h2>
               </div>
               <div className="rent-modal-body">
@@ -292,7 +292,7 @@ function RentPage({ darkMode }) {
                 {auth.currentUser && selectedItem.uid !== auth.currentUser.uid ? (
                   <>
                     <button className="rent-chat-button" onClick={() => setShowChatModal(true)}>Chat With Owner</button>
-                    <button className="rent-report-btn" style={{ marginLeft: 8, background: '#fbeee0', color: '#c0392b', border: '1px solid #c0392b', borderRadius: 6, padding: '4px 10px', fontSize: '0.95rem', cursor: 'pointer' }} onClick={() => openReportModal(selectedItem)}>Report</button>
+                   
                   </>
                 ) : (
                   <div style={{textAlign: 'center', color: '#888', fontWeight: 500, padding: '0.2rem 0', minHeight: '32px'}}>
