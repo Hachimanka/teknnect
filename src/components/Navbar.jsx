@@ -7,6 +7,7 @@ import { doc, getDoc, updateDoc, collection, query, where, onSnapshot, getDocs }
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import './Navbar.css';
 import PostItemModal from './PostItemModal';
+import PolicyPageModal from './PolicyPageModal';
 import { onAuthStateChanged } from 'firebase/auth';
 import ChatBox from '../components/Chatbox';
 
@@ -605,15 +606,37 @@ useEffect(() => {
   const displayName = user?.email ? user.email.replace('@cit.edu', '') : 'Guest';
 
   // Trigger tour after first login only
+  // Show PolicyPageModal before onboarding tour
+  const [showTermsModal, setShowTermsModal] = useState(false);
   useEffect(() => {
     if (user && localStorage.getItem('teknnect_tour_shown') !== '1') {
-      setTimeout(() => setTourStep(0), 400); // slight delay for UI
-      localStorage.setItem('teknnect_tour_shown', '1');
+      setTimeout(() => setShowTermsModal(true), 400);
     }
   }, [user]);
 
+  // Handler for accepting terms
+  const handleAcceptTerms = () => {
+    setShowTermsModal(false);
+    setTimeout(() => setTourStep(0), 200); // Start tour after accepting
+    localStorage.setItem('teknnect_tour_shown', '1');
+  };
+
+  // Handler for declining terms
+  const handleDeclineTerms = () => {
+    setShowTermsModal(false);
+    // Do not start tour or set teknnect_tour_shown
+  };
+
   return (
     <div className="page-header" style={{ position: 'relative' }}>
+      {/* Terms Modal before onboarding tour */}
+      {showTermsModal && (
+        <PolicyPageModal
+          viewOnly={false}
+          onAccept={handleAcceptTerms}
+          onDecline={handleDeclineTerms}
+        />
+      )}
       {/* Spotlight Tour Overlay */}
       {tourStep !== null && (
         <SpotlightTour

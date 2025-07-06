@@ -167,7 +167,7 @@ function HomePage({ darkMode }) {
           <div className="BottomGroup">
             <div className="LogoWithMessage">
               <img src={bottomLogo1} alt="Logo" className="bottom-logo" />
-              <p className="SubTitle">
+              <p className="SubTitles" style={{ textAlign: 'center', width: '100%' }}>
                 The student marketplace that<br /> makes campus life easier and <br/> more sustainable.
               </p>
             </div>
@@ -187,10 +187,21 @@ function HomePage({ darkMode }) {
                 <Link to="/about">About Us</Link><br />
                 {/* Button instead of Link for Policy & Privacy */}
                 <button className="policy-link-btn" onClick={() => setShowPolicyModal(true)}>
-                 Policy & Privacy
+                  Policy & Privacy
                 </button>
                 <br />
-                {/*<Link to="/rent">About You</Link><br />*/}
+                {/* Social Media Icons */}
+                <div className="social-icons" style={{ display: 'flex', gap: '18px', marginTop: '18px', justifyContent: 'center', alignItems: 'center' }}>
+                  <a href="https://facebook.com/forrosueloleonard.lape" target="_blank" rel="noopener noreferrer" title="Facebook">
+                    <img src={require('../assets/facebook.png')} alt="Facebook" style={{ width: 28, height: 28, filter: darkMode ? 'invert(1)' : 'none' }} />
+                  </a>
+                  <a href="https://www.instagram.com/hach1manhiki?igsh=MWg2MHA5ZTk4ZmoxeA==" target="_blank" rel="noopener noreferrer" title="Instagram">
+                    <img src={require('../assets/instagram.png')} alt="Instagram" style={{ width: 28, height: 28, filter: darkMode ? 'invert(1)' : 'none' }} />
+                  </a>
+                  <a href="https://tiktok.com/@teknnect" target="_blank" rel="noopener noreferrer" title="TikTok">
+                    <img src={require('../assets/tiktok.png')} alt="TikTok" style={{ width: 28, height: 28, filter: darkMode ? 'invert(1)' : 'none' }} />
+                  </a>
+                </div>
               </div>
             </div>
           </div>

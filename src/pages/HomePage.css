@@ -20,6 +20,11 @@ body {
   padding: 2vw;
 }
 
+.SubTitles{
+  transform: translateX(-16vh);
+  
+}
+
 
 .MainContent {
   max-width: 50vw;
@@ -478,7 +483,10 @@ body.dark-mode .policy-link-btn {
     height: 500px;
   }
  
-
+.SubTitles{
+  transform: translateX(-4vh);
+  
+}
  
   .MainContent {
     max-width: 50vw;
