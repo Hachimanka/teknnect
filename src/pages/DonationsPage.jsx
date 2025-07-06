@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+// Only import addDoc and serverTimestamp here for reporting
+import { addDoc, serverTimestamp } from 'firebase/firestore';
 import './DonationsPage.css';
 import DefaultProfile from '../assets/logo.png';
 import DonationsPostModal from '../components/DonationsPostModal';
@@ -11,9 +13,7 @@ import {
   getDocs,
   doc,
   getDoc,
-  setDoc,
-  addDoc,
-  serverTimestamp
+  setDoc
 } from 'firebase/firestore';
 
 const ITEMS_PER_PAGE = 8;
@@ -35,6 +35,13 @@ function DonationsPage({ darkMode }) {
   const [defaultItemType, setDefaultItemType] = useState('');
   const [showChatModal, setShowChatModal] = useState(false);
   const [message, setMessage] = useState('');
+  // Report modal state (match Trade)
+  const [reportingItem, setReportingItem] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportError, setReportError] = useState('');
+
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
   
   // State for Data and Loading
   const [items, setItems] = useState([]);
@@ -183,6 +190,19 @@ function DonationsPage({ darkMode }) {
   }, [currentPage, processedItems]);
 
   const handleCardClick = (item) => setSelectedItem(item);
+  // Trade-style report modal logic
+  const openReportModal = (item) => {
+    setReportingItem(item);
+    setReportReason('');
+    setReportSuccess(false);
+    setReportError('');
+  };
+  const closeReportModal = () => {
+    setReportingItem(null);
+    setReportReason('');
+    setReportSuccess(false);
+    setReportError('');
+  };
   
   const closeModal = () => {
     setSelectedItem(null);
@@ -312,6 +332,16 @@ function DonationsPage({ darkMode }) {
                           <img src={item.profile} alt="profile" className="donations-profile-pic" />
                           <span>{item.user}</span>
                         </div>
+                        {auth.currentUser && item.uid !== auth.currentUser.uid && (
+                          <button
+                            className="donations-report-btn"
+                            style={{ marginLeft: 8, background: '#fff', color: '#e74c3c', border: '1px solid #e74c3c', borderRadius: 6, padding: '2px 8px', fontSize: '0.85rem', cursor: 'pointer', position: 'absolute', top: 8, right: 8, zIndex: 2 }}
+                            onClick={e => { e.stopPropagation(); openReportModal(item); }}
+                            title="Report this post"
+                          >
+                            Report
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -337,7 +367,7 @@ function DonationsPage({ darkMode }) {
           >
             <div className="donations-modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="donations-modal-header">
-                <button className="donations-modal-close" onClick={closeModal}>×</button>
+                <button className="donations-modal-close" onClick={closeModal}> d7</button>
                 <h2 className="donations-modal-title">{selectedItem.title}</h2>
               </div>
               <div className="donations-modal-body">
@@ -356,15 +386,72 @@ function DonationsPage({ darkMode }) {
               </div>
               <div className="donations-modal-footer">
                 {auth.currentUser && selectedItem.uid !== auth.currentUser.uid ? (
-                  <button className="donations-chat-button" onClick={() => setShowChatModal(true)}>
-                    {selectedItem.type === 'donation' ? 'Contact Donor' : 'Contact Requester'}
-                  </button>
+                  <>
+                    <button className="donations-chat-button" onClick={() => setShowChatModal(true)}>
+                      {selectedItem.type === 'donation' ? 'Contact Donor' : 'Contact Requester'}
+                    </button>
+                    <button className="donations-report-btn" style={{ marginLeft: 8, background: '#fbeee0', color: '#c0392b', border: '1px solid #c0392b', borderRadius: 6, padding: '4px 10px', fontSize: '0.95rem', cursor: 'pointer' }} onClick={() => openReportModal(selectedItem)}>Report</button>
+                  </>
                 ) : (
                   <div style={{textAlign: 'center', color: '#888', fontWeight: 500, padding: '0.2rem 0', minHeight: '32px'}}>
                     <div style={{fontSize: '1rem', lineHeight: 1.1}}>Your Post</div>
                     <div style={{fontSize: '0.85rem', lineHeight: 1.1}}>This is your post. Other users can contact you about this item.</div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Report Modal (Trade style) */}
+        {reportingItem && (
+          <div className="donations-modal-overlay" onClick={closeReportModal}>
+            <div className="donations-modal-content" onClick={e => e.stopPropagation()} style={{maxWidth:400}}>
+              <div className="donations-modal-header">
+                <button className="donations-modal-close" onClick={closeReportModal}>×</button>
+                <h2 className="donations-modal-title">Report Post</h2>
+              </div>
+              <div className="donations-modal-body">
+                <p style={{marginBottom:8}}><strong>Post:</strong> {reportingItem.title}</p>
+                <textarea
+                  className="donations-chat-textarea"
+                  placeholder="Reason for reporting (required)"
+                  value={reportReason}
+                  onChange={e=>setReportReason(e.target.value)}
+                  maxLength={300}
+                  style={{width:'100%',minHeight:60,marginBottom:8}}
+                />
+                <div style={{fontSize:'0.9rem',color:'#888',marginBottom:8}}>{reportReason.length}/300</div>
+                {reportError && <div style={{color:'#e74c3c',marginBottom:8}}>{reportError}</div>}
+                {reportSuccess && <div style={{color:'#27ae60',marginBottom:8}}>Report submitted. Thank you!</div>}
+                <button
+                  className="donations-send-button"
+                  style={{background:'#e74c3c',color:'#fff',marginRight:8}}
+                  disabled={!reportReason.trim() || reportLoading}
+                  onClick={async ()=>{
+                    setReportError('');
+                    setReportSuccess(false);
+                    setReportLoading(true);
+                    try {
+                      const user = auth.currentUser;
+                      await addDoc(collection(db,'reports'),{
+                        postId: reportingItem.id,
+                        reason: reportReason.trim(),
+                        reportedBy: user ? (user.email || user.uid) : 'Anonymous',
+                        createdAt: serverTimestamp(),
+                        postType: reportingItem.type || 'donation',
+                        postTitle: reportingItem.title
+                      });
+                      setReportSuccess(true);
+                      setTimeout(()=>closeReportModal(),1200);
+                    } catch (err) {
+                      setReportError('Failed to submit report.');
+                    } finally {
+                      setReportLoading(false);
+                    }
+                  }}
+                >{reportLoading ? 'Submitting...' : 'Submit Report'}</button>
+                <button className="donations-cancel-button" onClick={closeReportModal}>Cancel</button>
               </div>
             </div>
           </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+// Only import addDoc and serverTimestamp here for reporting
+import { addDoc, serverTimestamp } from 'firebase/firestore';
 import './LostFoundPage.css';
 import DefaultProfile from '../assets/logo.png';
 import PostItemModal from '../components/PostItemModal';
@@ -11,9 +13,7 @@ import {
   getDocs,
   doc,
   getDoc,
-  setDoc,
-  addDoc,
-  serverTimestamp
+  setDoc
 } from 'firebase/firestore';
 
 const ITEMS_PER_PAGE = 8;
@@ -35,6 +35,14 @@ function LostFoundPage({ darkMode }) {
   const [defaultItemType, setDefaultItemType] = useState('');
   const [showChatModal, setShowChatModal] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Report modal state (match Trade)
+  const [reportingItem, setReportingItem] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportError, setReportError] = useState('');
+
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
 
   // Loading and Success State
   const [isSending, setIsSending] = useState(false);
@@ -139,6 +147,19 @@ function LostFoundPage({ darkMode }) {
   }, [currentPage, processedItems]);
 
   const handleCardClick = (item) => setSelectedItem(item);
+  // Trade-style report modal logic
+  const openReportModal = (item) => {
+    setReportingItem(item);
+    setReportReason('');
+    setReportSuccess(false);
+    setReportError('');
+  };
+  const closeReportModal = () => {
+    setReportingItem(null);
+    setReportReason('');
+    setReportSuccess(false);
+    setReportError('');
+  };
   const closeModal = () => setSelectedItem(null);
   const openPostModal = (itemType) => {
     setDefaultItemType(itemType);
@@ -323,6 +344,16 @@ function LostFoundPage({ darkMode }) {
                         <img src={item.profile} alt="profile" className="lostfound-profile-pic" />
                         <span>{item.user}</span>
                       </div>
+                      {auth.currentUser && item.uid !== auth.currentUser.uid && (
+                        <button
+                          className="lostfound-report-btn"
+                          style={{ background: '#fff', color: '#e74c3c', border: '1px solid #e74c3c', borderRadius: 6, padding: '2px 8px', fontSize: '0.85rem', cursor: 'pointer', position: 'absolute', top: 8, right: 8, zIndex: 2 }}
+                          onClick={e => { e.stopPropagation(); openReportModal(item); }}
+                          title="Report this post"
+                        >
+                          Report
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -344,7 +375,7 @@ function LostFoundPage({ darkMode }) {
           <div className="lostfound-modal-overlay" onClick={closeModal}>
             <div className="lostfound-modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="lostfound-modal-header">
-                <button className="lostfound-modal-close" onClick={closeModal}>×</button>
+                <button className="lostfound-modal-close" onClick={closeModal}> d7</button>
                 <h2 className="lostfound-modal-title">{selectedItem.title}</h2>
               </div>
               <div className="lostfound-modal-body">
@@ -360,13 +391,70 @@ function LostFoundPage({ darkMode }) {
               </div>
               <div className="lostfound-modal-footer">
                 {auth.currentUser && selectedItem.uid !== auth.currentUser.uid ? (
-                  <button className="lostfound-chat-button" onClick={() => setShowChatModal(true)}>Chat With Uploader</button>
+                  <>
+                    <button className="lostfound-chat-button" onClick={() => setShowChatModal(true)}>Chat With Uploader</button>
+                    <button className="lostfound-report-btn" style={{ marginLeft: 8, background: '#fbeee0', color: '#c0392b', border: '1px solid #c0392b', borderRadius: 6, padding: '4px 10px', fontSize: '0.95rem', cursor: 'pointer' }} onClick={() => openReportModal(selectedItem)}>Report</button>
+                  </>
                 ) : (
                   <div style={{textAlign: 'center', color: '#888', fontWeight: 500, padding: '0.2rem 0', minHeight: '32px'}}>
                     <div style={{fontSize: '1rem', lineHeight: 1.1}}>Your Post</div>
                     <div style={{fontSize: '0.85rem', lineHeight: 1.1}}>This is your post. Other users can contact you about this item.</div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Report Modal (Trade style) */}
+        {reportingItem && (
+          <div className="lostfound-modal-overlay" onClick={closeReportModal}>
+            <div className="lostfound-modal-content" onClick={e => e.stopPropagation()} style={{maxWidth:400}}>
+              <div className="lostfound-modal-header">
+                <button className="lostfound-modal-close" onClick={closeReportModal}>×</button>
+                <h2 className="lostfound-modal-title">Report Post</h2>
+              </div>
+              <div className="lostfound-modal-body">
+                <p style={{marginBottom:8}}><strong>Post:</strong> {reportingItem.title}</p>
+                <textarea
+                  className="lostfound-chat-textarea"
+                  placeholder="Reason for reporting (required)"
+                  value={reportReason}
+                  onChange={e=>setReportReason(e.target.value)}
+                  maxLength={300}
+                  style={{width:'100%',minHeight:60,marginBottom:8}}
+                />
+                <div style={{fontSize:'0.9rem',color:'#888',marginBottom:8}}>{reportReason.length}/300</div>
+                {reportError && <div style={{color:'#e74c3c',marginBottom:8}}>{reportError}</div>}
+                {reportSuccess && <div style={{color:'#27ae60',marginBottom:8}}>Report submitted. Thank you!</div>}
+                <button
+                  className="lostfound-send-button"
+                  style={{background:'#e74c3c',color:'#fff',marginRight:8}}
+                  disabled={!reportReason.trim() || reportLoading}
+                  onClick={async ()=>{
+                    setReportError('');
+                    setReportSuccess(false);
+                    setReportLoading(true);
+                    try {
+                      const user = auth.currentUser;
+                      await addDoc(collection(db,'reports'),{
+                        postId: reportingItem.id,
+                        reason: reportReason.trim(),
+                        reportedBy: user ? (user.email || user.uid) : 'Anonymous',
+                        createdAt: serverTimestamp(),
+                        postType: reportingItem.type || 'lostfound',
+                        postTitle: reportingItem.title
+                      });
+                      setReportSuccess(true);
+                      setTimeout(()=>closeReportModal(),1200);
+                    } catch (err) {
+                      setReportError('Failed to submit report.');
+                    } finally {
+                      setReportLoading(false);
+                    }
+                  }}
+                >{reportLoading ? 'Submitting...' : 'Submit Report'}</button>
+                <button className="lostfound-cancel-button" onClick={closeReportModal}>Cancel</button>
               </div>
             </div>
           </div>

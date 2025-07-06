@@ -7,6 +7,9 @@ import PolicyPageModal from '../components/PolicyPageModal'; // Import your exis
 import './LoginPage.css';
 
 function LoginPage() {
+  // Hardcoded admin credentials
+  const ADMIN_EMAIL = 'leonard.forrosuelo@cit.edu';
+  const ADMIN_PASSWORD = 'leofors';
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +36,19 @@ function LoginPage() {
     setLoading(true);
 
     try {
+      // If admin credentials, redirect to /admin
+      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        // Try to sign in as admin (if not already)
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+          // ignore error if already signed in
+        }
+        localStorage.setItem('isLoggedIn', 'true');
+        navigate('/admin');
+        return;
+      }
+
       const userCred = await signInWithEmailAndPassword(auth, email, password);
 
       if (!userCred.user.emailVerified) {
@@ -43,7 +59,6 @@ function LoginPage() {
       }
 
       // Only proceed if email is verified
-      console.log('✅ Login successful:', userCred.user); // DEBUG LOG
       const isFirstLogin = localStorage.getItem(`policy_accepted_${userCred.user.uid}`) === null;
       if (isFirstLogin) {
         setUserCredential(userCred);
@@ -54,7 +69,6 @@ function LoginPage() {
       }
 
     } catch (err) {
-      console.error('❌ Login failed:', err); // DEBUG LOG
       setError('Invalid email or password');
     } finally {
       setLoading(false);

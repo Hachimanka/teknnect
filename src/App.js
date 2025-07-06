@@ -13,6 +13,7 @@ import TradePage from './pages/TradePage';
 import RegisterPage from './pages/RegisterPage';
 import MyItemsPage from './pages/MyItemsPage';
 import About from './pages/About';
+import AdminPage from './pages/AdminPage';
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -50,6 +51,7 @@ function App() {
           <Route path="/register" element={<RegisterPage darkMode={darkMode} />} />
           <Route path="/my-items" element={<MyItemsPage darkMode={darkMode} />} />
           <Route path="/about" element={<About darkMode={darkMode} />} />
+          <Route path="/admin" element={<AdminPage darkMode={darkMode} />} />
         </Routes>
       </BrowserRouter>
     </div>

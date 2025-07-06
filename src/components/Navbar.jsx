@@ -772,6 +772,43 @@ useEffect(() => {
           <button className="my-items-button" onClick={handleMyItemsClick}>
             My Items
           </button>
+          {/* Admin button if admin is logged in */}
+          {user?.email === 'leonard.forrosuelo@cit.edu' && (
+            <>
+              <hr />
+              <button
+                className="admin-page-button"
+                onClick={() => { setShowProfileMenu(false); navigate('/admin'); }}
+                style={{
+                  background: 'linear-gradient(90deg, #2E8B57 60%, #FFD700 100%)',
+                  color: '#232323',
+                  fontWeight: 'bold',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '10px 0',
+                  margin: '8px 0',
+                  fontSize: '1rem',
+                  boxShadow: '0 2px 8px #0002',
+                  letterSpacing: '0.5px',
+                  transition: 'background 0.2s, color 0.2s',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                }}
+                onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #FFD700 60%, #2E8B57 100%)'}
+                onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #2E8B57 60%, #FFD700 100%)'}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: 6}}>
+                  <circle cx="10" cy="10" r="9" stroke="#232323" strokeWidth="2" fill="#FFD700" />
+                  <path d="M7 13h6M8 8h4M10 5v6" stroke="#232323" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                Admin Panel
+              </button>
+            </>
+          )}
           <hr />
           <button className="logout-button" onClick={handleLogout}>
             Logout

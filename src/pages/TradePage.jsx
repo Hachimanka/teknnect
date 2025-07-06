@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+// Only import addDoc and serverTimestamp ONCE, and collection if not already imported below
 import './TradePage.css';
 import DefaultProfile from '../assets/logo.png';
 import PostItemModal from '../components/PostItemModal';
@@ -34,6 +35,13 @@ function TradePage({ darkMode }) {
   const [showPostModal, setShowPostModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [message, setMessage] = useState('');
+  // Report modal state
+  const [reportingItem, setReportingItem] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportError, setReportError] = useState('');
+
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
 
   // Data and Loading State
   const [items, setItems] = useState([]);
@@ -204,11 +212,20 @@ function TradePage({ darkMode }) {
             <>
             <div className="trade-items-grid">
               {paginatedItems.map((item) => (
-                <div key={item.id} className="trade-item-card" onClick={() => handleCardClick(item)}>
+                <div key={item.id} className="trade-item-card" onClick={() => handleCardClick(item)} style={{position:'relative'}}>
                   <div className="trade-item-badge">For Trade</div>
                   <div className="trade-item-image">
                     <img src={item.image} alt={item.title} />
                   </div>
+                  {/* Small report button */}
+                  <button
+                    className="trade-report-btn"
+                    style={{position:'absolute',top:8,right:8,padding:'2px 8px',fontSize:'0.85rem',borderRadius:6,border:'1px solid #e74c3c',background:'#fff',color:'#e74c3c',cursor:'pointer',zIndex:2}}
+                    onClick={e => {e.stopPropagation(); setReportingItem(item); setReportReason(''); setReportSuccess(false); setReportError('');}}
+                    title="Report this post"
+                  >
+                    Report
+                  </button>
                   <div className="trade-item-info">
                     <div>
                       <h3 className="trade-item-title">{item.title}</h3>
@@ -225,6 +242,59 @@ function TradePage({ darkMode }) {
                   </div>
                 </div>
               ))}
+        {/* Report Modal */}
+        {reportingItem && (
+          <div className="trade-modal-overlay" onClick={()=>setReportingItem(null)}>
+            <div className="trade-modal-content" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+              <div className="trade-modal-header">
+                <button className="trade-modal-close" onClick={()=>setReportingItem(null)}>×</button>
+                <h2 className="trade-modal-title">Report Post</h2>
+              </div>
+              <div className="trade-modal-body">
+                <p style={{marginBottom:8}}><strong>Post:</strong> {reportingItem.title}</p>
+                <textarea
+                  className="trade-chat-textarea"
+                  placeholder="Reason for reporting (required)"
+                  value={reportReason}
+                  onChange={e=>setReportReason(e.target.value)}
+                  maxLength={300}
+                  style={{width:'100%',minHeight:60,marginBottom:8}}
+                />
+                <div style={{fontSize:'0.9rem',color:'#888',marginBottom:8}}>{reportReason.length}/300</div>
+                {reportError && <div style={{color:'#e74c3c',marginBottom:8}}>{reportError}</div>}
+                {reportSuccess && <div style={{color:'#27ae60',marginBottom:8}}>Report submitted. Thank you!</div>}
+                <button
+                  className="trade-send-button"
+                  style={{background:'#e74c3c',color:'#fff',marginRight:8}}
+                  disabled={!reportReason.trim() || reportLoading}
+                  onClick={async ()=>{
+                    setReportError('');
+                    setReportSuccess(false);
+                    setReportLoading(true);
+                    try {
+                      const user = auth.currentUser;
+                      await addDoc(collection(db,'reports'),{
+                        postId: reportingItem.id,
+                        reason: reportReason.trim(),
+                        reportedBy: user ? (user.email || user.uid) : 'Anonymous',
+                        createdAt: serverTimestamp(),
+                        postType: 'trade',
+                        postTitle: reportingItem.title
+                      });
+                      setReportSuccess(true);
+                      setTimeout(()=>setReportingItem(null),1200);
+                    } catch (err) {
+                      setReportError('Failed to submit report.');
+                    } finally {
+                      setReportLoading(false);
+                    }
+                  }}
+                >{reportLoading ? 'Submitting...' : 'Submit Report'}</button>
+                <button className="trade-cancel-button" onClick={()=>setReportingItem(null)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
             </div>
              {totalPages > 1 && (
                 <div className="trade-pagination">

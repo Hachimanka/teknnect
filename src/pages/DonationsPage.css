@@ -1,3 +1,43 @@
+/* AdminPage mobile adjustments */
+.admin-mobile-grid {
+  /* On small screens, stack cards vertically and reduce padding */
+}
+
+@media (max-width: 600px) {
+  .admin-mobile-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.8rem !important;
+    grid-template-columns: none !important;
+    padding: 0 0.5rem;
+  }
+  .admin-mobile-card {
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    width: 90vw !important;
+    margin-left: auto !important;
+    margin-right: 2.2rem !important;
+    margin-top: 0.7rem !important;
+    margin-bottom: 0.7rem !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
+    padding: 0.8rem 0.7rem 0.6rem 0.7rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+  .admin-mobile-card img {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 140px !important;
+  }
+  .admin-mobile-card h3 {
+    font-size: 1.02rem !important;
+    white-space: normal !important;
+  }
+}
 /* === Layout === */
 .donations-PageWrapper {
     background-image: url('../assets/hapitwhite.png');
