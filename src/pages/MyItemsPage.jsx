@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, orderBy, deleteDoc, doc, updateDoc }
 import { onAuthStateChanged } from 'firebase/auth';
 import styles from './MyItemsPage.module.css';
 
+
 function MyItemsPage() {
   const [user, setUser] = useState(null);
   const [items, setItems] = useState([]);
@@ -11,7 +12,37 @@ function MyItemsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [completeLoading, setCompleteLoading] = useState(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessageVariant, setSuccessMessageVariant] = useState('');
+  const [successMessagePosition, setSuccessMessagePosition] = useState('');
   
+  const getRandomSuccessMessage = (type) => {
+  const messages = {
+    delete: [
+      { title: "Item Deleted!", text: "Your item has been successfully removed." },
+      { title: "Gone Forever!", text: "Item deleted from your collection." },
+      { title: "Removed!", text: "Item has been permanently deleted." }
+    ],
+    complete: [
+      { title: "Transaction Complete!", text: "Congratulations on your successful transaction!" },
+      { title: "Well Done!", text: "Another successful transaction completed!" },
+      { title: "Success!", text: "Transaction marked as completed successfully!" }
+    ]
+  };
+  
+  const typeMessages = messages[type] || messages.complete;
+  return typeMessages[Math.floor(Math.random() * typeMessages.length)];
+};
+
+const showSuccessAnimation = (type) => {
+  setSuccessMessageVariant(type === 'delete' ? 'delete' : 'complete');
+  setSuccessMessagePosition('center');
+  setShowSuccessMessage(true);
+  
+  setTimeout(() => {
+    setShowSuccessMessage(false);
+  }, 3000);
+};
   // New state for posts/completed filter
   const [statusFilter, setStatusFilter] = useState('posts'); // 'posts' or 'completed'
   
@@ -79,7 +110,7 @@ function MyItemsPage() {
       setDeleteLoading(itemId);
       await deleteDoc(doc(db, 'items', itemId));
       setItems(items.filter(item => item.id !== itemId));
-      alert('Item deleted successfully!');
+      showSuccessAnimation('delete');
     } catch (error) {
       console.error('Error deleting item:', error);
       alert('Error deleting item. Please try again.');
@@ -108,7 +139,7 @@ function MyItemsPage() {
           : item
       ));
       
-      alert('Transaction marked as completed!');
+      showSuccessAnimation('complete');
     } catch (error) {
       console.error('Error completing transaction:', error);
       alert('Error completing transaction. Please try again.');
@@ -346,21 +377,22 @@ function MyItemsPage() {
 
       {/* Status Filter Section - UPDATED */}
       <div className={styles.transactionFilterSection}>
-  <div className={styles.transactionFilterButtons}>
-    <button 
-      className={`${styles.transactionFilterButton} ${statusFilter === 'posts' ? styles.active : ''}`}
-      onClick={() => setStatusFilter('posts')}
-    >
-      📋 Posts ({postsCount})
-    </button>
-    <button 
-      className={`${styles.transactionFilterButton} ${statusFilter === 'completed' ? styles.active : ''}`}
-      onClick={() => setStatusFilter('completed')}
-    >
-      ✅ Completed Transactions ({completedCount})
-    </button>
-  </div>
-</div>
+        <div className={styles.transactionFilterButtons}>
+          <button 
+            className={`${styles.transactionFilterButton} ${statusFilter === 'posts' ? styles.active : ''}`}
+            onClick={() => setStatusFilter('posts')}
+          >
+            📋 Posts ({postsCount})
+          </button>
+          <button 
+            className={`${styles.transactionFilterButton} ${statusFilter === 'completed' ? styles.active : ''}`}
+            onClick={() => setStatusFilter('completed')}
+          >
+            ✅ Completed Transactions ({completedCount})
+          </button>
+        </div>
+      </div>
+
       <div className={styles.filterSection}>
         <h3>Filter by Category:</h3>
         <div className={styles.filterButtons}>
@@ -596,7 +628,6 @@ function MyItemsPage() {
       </div>
 
       {/* Modal */}
-      {/* Modal */}
       {selectedItem && (
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -698,7 +729,7 @@ function MyItemsPage() {
               </div>
             </div>
 
-            {/* Modal Actions Section - NEW */}
+            {/* Modal Actions Section */}
             <div className={`${styles.modalActions} ${selectedItem.completed ? styles.completed : ''}`}>
               {!selectedItem.completed ? (
                 <>
@@ -773,8 +804,19 @@ function MyItemsPage() {
                     )}
                   </button>
                 </>
-              )}
+              )}             
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Message Overlay */}
+      {showSuccessMessage && (
+        <div className={`${styles.successOverlay} ${showSuccessMessage ? styles.show : ''}`}>
+          <div className={`${styles.successMessage} ${styles[successMessageVariant]} ${styles[successMessagePosition]}`}>
+            <span className={styles.successIcon}>✨</span>
+            <h3 className={styles.successTitle}>{getRandomSuccessMessage(successMessageVariant === 'delete' ? 'delete' : 'complete').title}</h3>
+            <p className={styles.successText}>{getRandomSuccessMessage(successMessageVariant === 'delete' ? 'delete' : 'complete').text}</p>
           </div>
         </div>
       )}

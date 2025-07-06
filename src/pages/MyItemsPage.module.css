@@ -2015,3 +2015,123 @@
     text-align: center;
   }
 }
+
+/* Success Message Overlay */
+.successOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.successOverlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.successMessage {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transform: scale(0.8) translateY(50px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-width: 400px;
+  margin: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.successMessage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.successOverlay.show .successMessage {
+  transform: scale(1) translateY(0);
+}
+
+.successOverlay.show .successMessage::before {
+  left: 100%;
+}
+
+.successMessage.complete {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.successMessage.delete {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+}
+
+.successMessage.center {
+  transform: scale(0.8) translateY(50px);
+}
+
+.successIcon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+  animation: bounce 1s infinite;
+}
+
+.successTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.successText {
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .successMessage {
+    padding: 1.5rem;
+    margin: 15px;
+  }
+  
+  .successTitle {
+    font-size: 1.3rem;
+  }
+  
+  .successText {
+    font-size: 0.9rem;
+  }
+  
+  .successIcon {
+    font-size: 2.5rem;
+  }
+}
